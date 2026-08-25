@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人每日台股選股儀表板</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: "Microsoft JhengHei", sans-serif; }
+        .card { border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .badge-custom { font-size: 0.85rem; padding: 0.5em 0.8em; }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <!-- 標頭 -->
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h2 class="fw-bold text-dark">📈 每日選股決策儀表板</h2>
+                <p class="text-muted" id="update-time">資料更新時間：讀取中...</p>
+            </div>
+        </div>
+
+        <!-- 篩選條件說明 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-3 bg-white">
+                    <h6 class="fw-bold text-secondary mb-2">🎯 策略條件：</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-danger badge-custom">1. 5日線即將穿越60日線 (&lt;1.8%)</span>
+                        <span class="badge bg-warning text-dark badge-custom">2. MACD 柱狀體翻正/負值縮小</span>
+                        <span class="badge bg-success badge-custom">3. 投信連續 2 日買超</span>
+                        <span class="badge bg-info text-dark badge-custom">4. 季報合約負債增加</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 選股結果表格 -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card p-4 bg-white">
+                    <h5 class="fw-bold mb-3">符合條件個股清單</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>股票代號</th>
+                                    <th>收盤價</th>
+                                    <th>5MA/60MA 距離</th>
+                                    <th>MACD 柱狀體</th>
+                                    <th>基本面</th>
+                                    <th>查看個股圖表</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-list">
+                                <tr><td colspan="6" class="text-center py-4 text-muted">資料載入中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        fetch('data.json')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('update-time').innerText = `資料最後更新：${data.update_time} (每日盤後 16:30 自動更新)`;
+                const list = document.getElementById('stock-list');
+                list.innerHTML = '';
+
+                if (data.stocks.length === 0) {
+                    list.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">今日無完全符合條件之個股，請保持觀望。</td></tr>';
+                    return;
+                }
+
+                data.stocks.forEach(item => {
+                    const row = `
+                        <tr>
+                            <td class="fw-bold text-primary fs-5">${item.id}</td>
+                            <td class="fw-bold">$${item.close}</td>
+                            <td><span class="badge bg-light text-dark border">${item.ma_dist}%</span></td>
+                            <td><span class="text-danger fw-bold">${item.osc}</span></td>
+                            <td><span class="badge bg-success">${item.contract}</span></td>
+                            <td>
+                                <a href="https://tw.stock.yahoo.com/quote/${item.id}.TW" target="_blank" class="btn btn-sm btn-outline-primary me-1">Yahoo K線圖</a>
+                                <a href="https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=${item.id}" target="_blank" class="btn btn-sm btn-outline-secondary">Goodinfo 籌碼</a>
+                            </td>
+                        </tr>
+                    `;
+                    list.innerHTML += row;
+                });
+            })
+            .catch(() => {
+                document.getElementById('stock-list').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">尚未產生初次選股資料，請至 GitHub Actions 手動執行一次。</td></tr>';
+            });
+    </script>
+</body>
+</html>
