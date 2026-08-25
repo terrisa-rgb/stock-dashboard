@@ -9,6 +9,10 @@ on:
 jobs:
   update-dashboard:
     runs-on: ubuntu-latest
+    # 【新增這兩行】明確給予寫入專案的權限
+    permissions:
+      contents: write
+
     steps:
       - name: 檢出專案碼
         uses: actions/checkout@v3
