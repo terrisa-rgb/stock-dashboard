@@ -9,16 +9,15 @@ on:
 jobs:
   update-dashboard:
     runs-on: ubuntu-latest
-    # 【新增這兩行】明確給予寫入專案的權限
     permissions:
       contents: write
 
     steps:
       - name: 檢出專案碼
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # 從 v3 升級到 v4
 
       - name: 設定 Python 環境
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5  # 從 v4 升級到 v5
         with:
           python-version: '3.10'
 
